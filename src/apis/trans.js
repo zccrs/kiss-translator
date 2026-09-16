@@ -87,6 +87,7 @@ import { createSubtitleIndexAligner } from "../libs/subtitleIndexAlign";
 import { kissLog } from "../libs/log";
 import { fetchData, fetchStream } from "../libs/fetch";
 import { getMsgHistory } from "./history";
+import { getOpenCodeSessionId } from "./opencode";
 import { parseBilingualVtt } from "../subtitle/vtt";
 import { getDocInfo } from "../libs/docInfo";
 import {
@@ -1465,6 +1466,17 @@ export const genTransReq = async ({ reqHook, ...args }) => {
   }
   if (customBody?.trim()) {
     Object.assign(body, parseJsonObj(customBody));
+  }
+
+  // OpenCode Go requires a stable session ID for efficient routing.
+  // Preserve an explicitly configured header case-insensitively.
+  if (
+    apiType === OPT_TRANS_OPENCODEGO &&
+    !Object.keys(headers).some(
+      (name) => name.toLowerCase() === "x-opencode-session"
+    )
+  ) {
+    headers["x-opencode-session"] = getOpenCodeSessionId({ apiSlug, url });
   }
 
   // 执行 request hook
